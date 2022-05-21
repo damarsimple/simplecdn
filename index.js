@@ -50,11 +50,11 @@ app.post("/upload", function (req, res) {
         res.status(400).end("Directory must start with /");
     }
     const file = req.files.file;
-    const filePath = (_b = directory + "/" + req.body.filename) !== null && _b !== void 0 ? _b : file === null || file === void 0 ? void 0 : file.name;
+    const filePath = (_b = directory + req.body.filename) !== null && _b !== void 0 ? _b : file === null || file === void 0 ? void 0 : file.name;
     try {
         if (fs_1.default.lstatSync(filePath).isDirectory() ||
             fs_1.default.lstatSync(filePath).isFile()) {
-            fs_1.default.unlinkSync(filePath);
+            fs_1.default.rmSync(filePath, { recursive: true, force: true });
         }
     }
     catch (error) { }
