@@ -34,7 +34,7 @@ app.post("/upload", function (req, res) {
     }
     const directory = ("/var/www/cdn" + req.body.directory);
     try {
-        if (!fs_1.default.lstatSync("/var/www/cdn/damar/test/notexists").isDirectory()) {
+        if (!fs_1.default.lstatSync(directory).isDirectory()) {
             const f = fs_1.default.mkdirSync(directory, { recursive: true });
             if (!f) {
                 res.status(500).end("Could not create directory.");
@@ -51,14 +51,26 @@ app.post("/upload", function (req, res) {
         return;
     }
     const file = req.files.file;
-    file.mv(directory + "/" + file.name, function (err) {
-        if (err) {
-            console.log(`Error moving file: ${err}`);
-            return res.status(500).send(err);
+    const filePath = directory + "/" + file.name;
+    try {
+        if (!fs_1.default.lstatSync(filePath).isDirectory() ||
+            !fs_1.default.lstatSync(filePath).isFile()) {
+            fs_1.default.unlinkSync(filePath);
         }
-        console.log("File uploaded to /var/www/cdn" + directory + "/" + file.name);
-        res.send("File uploaded!");
-    });
+    }
+    catch (error) {
+        res.status(500).end("Could not delete file. " + error);
+    }
+    finally {
+        file.mv(directory + "/" + file.name, function (err) {
+            if (err) {
+                console.log(`Error moving file: ${err}`);
+                return res.status(500).send(err);
+            }
+            console.log("File uploaded to " + directory + "/" + file.name);
+            res.send("File uploaded!");
+        });
+    }
 });
 app.listen(4000, () => {
     console.log("Server started at http://localhost:4000");
