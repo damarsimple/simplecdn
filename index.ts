@@ -36,14 +36,20 @@ app.post("/upload", function (req, res) {
   }
 
   const directory = ("/var/www/cdn" + req.body.directory) as string;
-  const f = fs.mkdirSync(directory, { recursive: true });
+
+  try {
+    if (!fs.lstatSync("/var/www/cdn/damar/test/notexists").isDirectory()) {
+      const f = fs.mkdirSync(directory, { recursive: true });
+      if (!f) {
+        res.status(500).end("Could not create directory.");
+        return;
+      }
+    }
+  } catch (error) {
+    const f = fs.mkdirSync(directory, { recursive: true });
+  }
 
   console.log(`Directory ${directory} created`);
-
-  if (!f) {
-    res.status(500).end("Could not create directory.");
-    return;
-  }
 
   if (!directory.startsWith("/")) {
     res.status(400).end("Directory must start with /");
@@ -58,7 +64,7 @@ app.post("/upload", function (req, res) {
 
       return res.status(500).send(err);
     }
-    console.log("File uploaded to /var/www/cdn" + directory + "/" + file.name);
+    console.log("File uploaded to " + directory + "/" + file.name);
     res.send("File uploaded!");
   });
 });

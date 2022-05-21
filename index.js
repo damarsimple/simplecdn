@@ -33,12 +33,19 @@ app.post("/upload", function (req, res) {
         return;
     }
     const directory = ("/var/www/cdn" + req.body.directory);
-    const f = fs_1.default.mkdirSync(directory, { recursive: true });
-    console.log(f);
-    if (!f) {
-        res.status(500).end("Could not create directory.");
-        return;
+    try {
+        if (!fs_1.default.lstatSync("/var/www/cdn/damar/test/notexists").isDirectory()) {
+            const f = fs_1.default.mkdirSync(directory, { recursive: true });
+            if (!f) {
+                res.status(500).end("Could not create directory.");
+                return;
+            }
+        }
     }
+    catch (error) {
+        const f = fs_1.default.mkdirSync(directory, { recursive: true });
+    }
+    console.log(`Directory ${directory} created`);
     if (!directory.startsWith("/")) {
         res.status(400).end("Directory must start with /");
         return;
