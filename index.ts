@@ -53,33 +53,30 @@ app.post("/upload", function (req, res) {
 
   if (!directory.startsWith("/")) {
     res.status(400).end("Directory must start with /");
-    return;
   }
 
   const file = req.files.file as fileUpload.UploadedFile;
 
-  const filePath = directory + "/" + file.name;
+  const filePath = directory + req.body.filename ?? file?.name;
 
   try {
     if (
-      !fs.lstatSync(filePath).isDirectory() ||
-      !fs.lstatSync(filePath).isFile()
+      fs.lstatSync(filePath).isDirectory() ||
+      fs.lstatSync(filePath).isFile()
     ) {
-      fs.unlinkSync(filePath);
+      fs.rmSync(filePath, { recursive: true, force: true });
     }
-  } catch (error) {
-    res.status(500).end("Could not delete file. " + error);
-  } finally {
-    file.mv(directory + "/" + file.name, function (err: any) {
-      if (err) {
-        console.log(`Error moving file: ${err}`);
+  } catch (error) {}
 
-        return res.status(500).send(err);
-      }
-      console.log("File uploaded to " + directory + "/" + file.name);
-      res.send("File uploaded!");
-    });
-  }
+  file.mv(filePath, function (err: any) {
+    if (err) {
+      console.log(`Error moving file: ${err}`);
+
+      res.status(500).send(err);
+    }
+    console.log("File uploaded to " + filePath);
+    res.status(200).end("File uploaded!");
+  });
 });
 
 app.listen(4000, () => {

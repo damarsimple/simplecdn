@@ -23,7 +23,7 @@ app.post("/delete", function (req, res) {
     });
 });
 app.post("/upload", function (req, res) {
-    var _a;
+    var _a, _b;
     if (!((_a = req.files) === null || _a === void 0 ? void 0 : _a.file)) {
         res.status(400).end("No files were uploaded.");
         return;
@@ -48,29 +48,24 @@ app.post("/upload", function (req, res) {
     console.log(`Directory ${directory} created`);
     if (!directory.startsWith("/")) {
         res.status(400).end("Directory must start with /");
-        return;
     }
     const file = req.files.file;
-    const filePath = directory + "/" + file.name;
+    const filePath = (_b = directory + "/" + req.body.filename) !== null && _b !== void 0 ? _b : file === null || file === void 0 ? void 0 : file.name;
     try {
-        if (!fs_1.default.lstatSync(filePath).isDirectory() ||
-            !fs_1.default.lstatSync(filePath).isFile()) {
+        if (fs_1.default.lstatSync(filePath).isDirectory() ||
+            fs_1.default.lstatSync(filePath).isFile()) {
             fs_1.default.unlinkSync(filePath);
         }
     }
-    catch (error) {
-        res.status(500).end("Could not delete file. " + error);
-    }
-    finally {
-        file.mv(directory + "/" + file.name, function (err) {
-            if (err) {
-                console.log(`Error moving file: ${err}`);
-                return res.status(500).send(err);
-            }
-            console.log("File uploaded to " + directory + "/" + file.name);
-            res.send("File uploaded!");
-        });
-    }
+    catch (error) { }
+    file.mv(filePath, function (err) {
+        if (err) {
+            console.log(`Error moving file: ${err}`);
+            res.status(500).send(err);
+        }
+        console.log("File uploaded to " + filePath);
+        res.status(200).end("File uploaded!");
+    });
 });
 app.listen(4000, () => {
     console.log("Server started at http://localhost:4000");
