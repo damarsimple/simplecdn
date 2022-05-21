@@ -1,7 +1,6 @@
 import express from "express";
 import fileUpload from "express-fileupload";
 import fs from "fs";
-
 const app = express();
 
 app.use(
@@ -11,21 +10,18 @@ app.use(
 );
 
 app.post("/delete", function (req, res) {
-    if (!req.body.path) {
-        return res.status(400).send("No files were selected.");
+  if (!req.body.path) {
+    return res.status(400).send("No files were uploaded.");
+  }
+
+  const path = req.body.path;
+
+  fs.unlink(path, (err) => {
+    if (err) {
+      return res.status(500).send(err);
     }
-
-    const path = req.body.path;
-
-    fs.unlink(path, (err) => {
-        if (err) {
-            return res.status(500).send(err);
-        }
-
-        res.status(200).send("File deleted");
-    }
-    
-
+    return res.status(200).send("File deleted");
+  });
 });
 
 app.post("/upload", function (req, res) {
