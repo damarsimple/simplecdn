@@ -32,15 +32,24 @@ app.post("/upload", function (req, res) {
         res.status(400).end("No directory was specified.");
         return;
     }
-    const directory = req.body.directory;
-    if (!fs_1.default.existsSync(directory))
-        fs_1.default.mkdirSync(directory, { recursive: true });
-    if (!directory.startsWith("/"))
+    const directory = ("/var/www/cdn" + req.body.directory);
+    const f = fs_1.default.mkdirSync(directory, { recursive: true });
+    console.log(f);
+    if (!f) {
+        res.status(500).end("Could not create directory.");
+        return;
+    }
+    if (!directory.startsWith("/")) {
         res.status(400).end("Directory must start with /");
+        return;
+    }
     const file = req.files.file;
-    file.mv("/var/www/cdn" + directory + "/" + file.name, function (err) {
-        if (err)
+    file.mv(directory + "/" + file.name, function (err) {
+        if (err) {
+            console.log(`Error moving file: ${err}`);
             return res.status(500).send(err);
+        }
+        console.log("File uploaded to /var/www/cdn" + directory + "/" + file.name);
         res.send("File uploaded!");
     });
 });
